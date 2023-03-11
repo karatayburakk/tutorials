@@ -11,8 +11,17 @@
 //   }
 // }
 
-import { Controller, Get, Header, HttpCode, Param } from '@nestjs/common'; // we'll use the @Controller() decorator, which is required to define a basic controller. The @Get() HTTP request method decorator before the findAll() method tells Nest to create a handler for a specific endpoint for HTTP requests.
+import {
+  Body,
+  Controller,
+  Get,
+  Header,
+  HttpCode,
+  Param,
+  Post,
+} from '@nestjs/common'; // we'll use the @Controller() decorator, which is required to define a basic controller. The @Get() HTTP request method decorator before the findAll() method tells Nest to create a handler for a specific endpoint for HTTP requests.
 import { Observable, of } from 'rxjs';
+import { CreateCatDto } from './dtos/create-cat.dto';
 
 @Controller('cats')
 export class CatsController {
@@ -23,11 +32,11 @@ export class CatsController {
     return 'this action returns all cats';
   }
 
-  @Get(':id')
-  findOneById(@Param() params): string {
-    console.log(params.id);
-    return `This action returns a #${params.id} cat`;
-  }
+  // @Get(':id')
+  // findOneById(@Param() params): string {
+  //   console.log(params.id);
+  //   return `This action returns a #${params.id} cat`;
+  // }
 
   @Get('async')
   async findAsync(): Promise<any[]> {
@@ -37,6 +46,12 @@ export class CatsController {
   @Get('observable')
   findObservable(): Observable<any[]> {
     return of([]);
+  }
+
+  @Post()
+  create(@Body() createCatDto: CreateCatDto): Observable<any> {
+    console.log(createCatDto);
+    return;
   }
 }
 
