@@ -22,6 +22,19 @@ const configServiceProvider = {
 })
 export class UseClassModule {}
 
+@Module({
+  providers: [
+    {
+      provide: ConfigService,
+      useClass:
+        process.env.NODE_ENV === 'development'
+          ? DevelopmentConfigService
+          : ProductionConfigService,
+    },
+  ],
+})
+export class UseClassModule2 {}
+
 // Let's look at a couple of details in this code sample.
 // You'll notice that we define configServiceProvider with a literal object first, then pass it in the module decorator's providers property.
 // This is just a bit of code organization, but is functionally equivalent to the examples we've used thus far in this chapter.

@@ -3,8 +3,8 @@
 // Let's say you'd like to force Nest to use a mock CatsService for testing purposes.
 
 import { Module } from '@nestjs/common';
-import { CatsService } from '../app/cats/cats.service';
-import { CatsModule } from '../app/cats/cats.module';
+import { CatsService } from '../../app/cats/cats.service';
+import { CatsModule } from '../../app/cats/cats.module';
 
 const mockCatsService = {
   // Mock implementation
