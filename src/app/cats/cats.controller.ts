@@ -19,7 +19,9 @@ import {
   HttpCode,
   Param,
   Post,
-} from '@nestjs/common'; // we'll use the @Controller() decorator, which is required to define a basic controller. The @Get() HTTP request method decorator before the findAll() method tells Nest to create a handler for a specific endpoint for HTTP requests.
+} from '@nestjs/common'; // we'll use the @Controller() decorator, which is required to define a basic controller.
+// The @Get() HTTP request method decorator before the findAll() method tells Nest to create a handler for a specific endpoint
+// for HTTP requests.
 import { Observable, of } from 'rxjs';
 import { CreateCatDto } from './dtos/create-cat.dto';
 import { CatsService } from './cats.service';
