@@ -8,18 +8,24 @@ import {
   Body,
   Catch,
   Controller,
-  Controller,
-  Controller,
-  Controller,
   ExceptionFilter,
   Get,
   HttpException,
   HttpStatus,
+  Module,
   Post,
   UseFilters,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { CreateCatDto } from '../../app/cats/dtos/create-cat.dto';
+import {
+  APP_FILTER,
+  BaseExceptionFilter,
+  HttpAdapterHost,
+  NestApplication,
+  NestFactory,
+} from '@nestjs/core';
+import { AppModule } from '../../app/app.module';
 
 // Out of the box, this action is performed by a built-in global exception filter, which handles exceptions of type
 // HttpException(and subclasses of it).
@@ -42,7 +48,7 @@ const httpResponse = {
 // when certain error conditions occur.
 
 // For example, in the CatsController, we have a findAll() method (a GET route handler).
-// Let's assuma that this route handler throws an exception for some reason.
+// Let's assume that this route handler throws an exception for some reason.
 // To demonstrate this, we'll hard-code it as follows:
 
 @Controller('exception-filters')
@@ -255,3 +261,92 @@ export class CatsControllerWithExceptionFilter2 {
 // HINT:
 // Prefer applying filters by using classes instead of instances when possible.
 // It reduces memory usage since Nest can easily reuse instances of the same class across your entire module.
+
+// In the example aboce, the HttpExceptionFilter is applied only to the single create() route handler,
+// making it method-scoped. Exception filters can be scoped at different levels:
+// method-scoped, controller-scoped, or global-scoped.
+// For example, to set up a filter as controller-scoped, you would do the following:
+
+@UseFilters(HttpExceptionFilter)
+export class CatsControllerWithExceptionFilter3 {}
+
+// This construction sets up the HttpExceptionFilter for every route handler defined inside the CatsControllerWithExceptionFilter3
+
+// To create a global-scoped filter, you would do the following:
+
+// main.ts
+
+async function bootstrap() {
+  const app = await NestFactory.create<NestApplication>(AppModule);
+  app.useGlobalFilters(new HttpExceptionFilter());
+  await app.listen(3000);
+}
+
+// Warning: The useGlobalFilters() method does not set up filters for gateways or hybrid applications.
+
+// Global-scoped filters are used across the whole application, for every controller and every route handler.
+// In terms of dependency injection, global filters registered from outside of any module
+// (with useGlobalFilters() as in the example aboce) cannot inject dependencies since this is done outside the context of any module.
+// In order to solve this issue, you can register a global-scoped filter directly from any module using the following construction:
+
+// app.module.ts
+
+@Module({
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: HttpExceptionFilter,
+    },
+  ],
+})
+export class AppModuleWithExceptionFilter {}
+
+// HINT:
+// When using this approach to perform dependency injection for the filter, note that regardless of the module
+// where this construction is employed, the filter is, in fact, global.
+// Where should this be done? Choose the module where the filter (HttpExceptionFilter in the example aboce) is defined.
+// Also, useClass is not the only way of dealing with custom provider registration.
+
+// You can add as many filters with this technique as needed; simply add each to the providers array.
+
+// Catch Everything
+// In order to catch every unhandled exception (regardless of the exception type),
+// leave the @Catch() decorator's parameter list empty, e.g., Catch()
+
+// Inheritance
+// Typically, you'll create fully customized exception filters crafted to fulfill your application requirements.
+// However, there might be use-cases when you would like to simply extend the built-in default global exception filter,
+// and overried the behavior based on certain factors.
+// In order to delegate exception processing to the base filter, you need to extend BaseExceptionFilter and
+// call the inherited catch() method.
+
+// all-exceptions.filter.ts
+
+@Catch()
+export class AllExceptionsFilter extends BaseExceptionFilter {
+  catch(exception: unknown, host: ArgumentsHost): void {
+    super.catch(exception, host);
+  }
+}
+
+// WARNING: Method-scoped and Contoller-Scoped filters that extend the BaseExceptionFilter should not be instantiated
+// with new. Instead, let the framework instantiate them automatically.
+
+// The aboce implementation is just a shell demonstrating the approach.
+// Your implementation of the extended exception filter would include your tailored business logic (e.g., handling various conditions.)
+
+// Global filters can extend the base filter. This can be done in either of two ways.
+
+// The first method is to inject the HttpAdapter reference when instantiating the custom global filter:
+
+async function bootstrap2() {
+  const app = await NestFactory.create(AppModule);
+
+  const { httpAdapter } = app.get(HttpAdapterHost);
+
+  app.useGlobalFilters(new AllExceptionsFilter(httpAdapter));
+
+  await app.listen(3000);
+}
+
+// The second methid is to use the APP_FILTER token.
