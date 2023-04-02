@@ -1,5 +1,5 @@
 import { IsInt, IsString, validate } from 'class-validator';
-import { CreateCatDto } from '../app/cats/dtos/create-cat.dto';
+import { CreateCatDto } from '../../app/cats/dtos/create-cat.dto';
 // Pipes
 // A pipe is a class annotated with @Injectable() decorator, which implements the PipeTransform interface
 
@@ -24,7 +24,7 @@ import {
 } from '@nestjs/common';
 import { plainToInstance } from 'class-transformer';
 import { APP_PIPE, NestFactory } from '@nestjs/core';
-import { AppModule } from '../app/app.module';
+import { AppModule } from '../../app/app.module';
 
 // Pipes have two typical use cases:
 // transformation: transform input data to the desired form (e.g., from string to integer)
